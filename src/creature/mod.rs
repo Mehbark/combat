@@ -3,8 +3,8 @@ pub use classpect::{Aspect, Class};
 
 #[derive(Debug)]
 pub struct Creature {
-    class: Class,
-    aspect: Aspect,
+    pub class: Class,
+    pub aspect: Aspect,
 }
 
 impl Creature {
