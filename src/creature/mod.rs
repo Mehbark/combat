@@ -1,4 +1,5 @@
 mod ability;
+mod status;
 
 use std::fmt;
 use std::rc::Rc;
@@ -6,6 +7,7 @@ use std::rc::Rc;
 pub use crate::classpect::{Aspect, Class, Classpect};
 
 pub use self::ability::Ability;
+pub use self::status::Status;
 
 pub struct Creature {
     classpect: Classpect,
@@ -16,6 +18,18 @@ pub struct Creature {
     speed: f64,
 
     abilities: Vec<Rc<dyn Ability>>,
+
+    // Fungus is to fungi as status is to stati
+    stati: Vec<Status>,
+}
+
+pub struct CreatureSkeleton {
+    pub maxhealth: f64,
+    pub health: f64,
+    pub defense: f64,
+    pub speed: f64,
+
+    pub abilities: Vec<Rc<dyn Ability>>,
 }
 
 impl Creature {
@@ -31,16 +45,58 @@ impl Creature {
             speed: classpect.speed(),
 
             abilities: classpect.abilities(),
-        }
-    }
 
-    pub fn classpect(&self) -> Classpect {
-        self.classpect
+            stati: Vec::new(),
+        }
     }
 
     pub fn deal_damage(&mut self, damage: f64) {
         let after_block = damage - self.defense;
         self.health -= after_block;
+    }
+
+    pub fn add_status(&mut self, status: Status) {
+        self.stati.push(status);
+    }
+
+    pub fn activate_stati(&mut self) {
+        let mut skeleton = self.extract_skeleton();
+
+        for status in self.stati.iter_mut() {
+            status.activate(&mut skeleton);
+        }
+
+        self.insert_skeleton(skeleton);
+    }
+
+    pub fn extract_skeleton(&self) -> CreatureSkeleton {
+        CreatureSkeleton {
+            maxhealth: self.maxhealth,
+            health: self.health,
+            defense: self.defense,
+            speed: self.speed,
+            abilities: self.abilities.clone(),
+        }
+    }
+
+    fn insert_skeleton(&mut self, skeleton: CreatureSkeleton) {
+        let CreatureSkeleton {
+            maxhealth,
+            health,
+            defense,
+            speed,
+            abilities,
+        } = skeleton;
+
+        self.maxhealth = maxhealth;
+        self.health = health;
+        self.defense = defense;
+        self.speed = speed;
+        self.abilities = abilities;
+    }
+
+    pub fn classpect(&self) -> Classpect {
+        self.classpect
     }
 
     pub fn maxhealth(&self) -> f64 {

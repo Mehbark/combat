@@ -7,13 +7,18 @@ use super::Creature;
 pub trait Ability {
     fn name(&self) -> String;
     fn description(&self) -> String;
+    fn has_target(&self) -> bool;
 
     fn activate_on_self(&self, you: &mut Creature);
     fn activate_on_enemy(&self, you: &mut Creature, enemy: &mut Creature);
 
     fn activate(&self, you: &mut Creature, enemy: &mut Creature) {
         loop {
-            let target = choose::<Target>("Do you want to target yourself or the enemy?");
+            let target = if self.has_target() {
+                choose::<Target>("Do you want to target yourself or the enemy?")
+            } else {
+                Target::None
+            };
 
             match target {
                 Target::You => {
@@ -22,6 +27,7 @@ pub trait Ability {
                     }
                 }
                 Target::Enemy => break self.activate_on_enemy(you, enemy),
+                Target::None => break,
             }
         }
     }
@@ -37,6 +43,7 @@ impl<A: Ability> Describable for A {
 pub enum Target {
     You,
     Enemy,
+    None,
 }
 
 impl Choosable for Target {
@@ -51,6 +58,9 @@ impl Describable for Target {
         match self {
             Target::You => "Target yourself".to_string(),
             Target::Enemy => "Target enemy".to_string(),
+            Target::None => {
+                "you shouldn't see this lol! all of this is homestuck be tee dubs".to_string()
+            }
         }
     }
 }
@@ -62,6 +72,10 @@ impl Ability for Rc<dyn Ability> {
 
     fn description(&self) -> String {
         self.as_ref().description()
+    }
+
+    fn has_target(&self) -> bool {
+        self.as_ref().has_target()
     }
 
     fn activate_on_self(&self, you: &mut Creature) {

@@ -27,5 +27,8 @@ fn main() {
             player.abilities(),
         )
         .activate(&mut player, &mut test_creature);
+
+        player.activate_stati();
+        test_creature.activate_stati();
     }
 }
