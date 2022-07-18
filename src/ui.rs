@@ -1,7 +1,10 @@
 use std::io;
 
-pub trait Choosable: Copy + Describable {
-    fn choices() -> Vec<Self>;
+pub trait Choosable {
+    type Item: Describable + Clone;
+    fn choices() -> Vec<Self::Item> {
+        Vec::new()
+    }
 }
 
 pub trait Describable {
@@ -9,7 +12,7 @@ pub trait Describable {
 }
 
 pub struct Chooser<C: Choosable> {
-    choices: Vec<C>,
+    choices: Vec<C::Item>,
     stdin: io::Stdin,
 }
 
@@ -21,19 +24,31 @@ impl<C: Choosable> Chooser<C> {
         }
     }
 
-    pub fn choose() -> C {
-        let chooser = Self::new();
+    fn new_raw(choices: &[C::Item]) -> Self {
+        Self {
+            choices: choices.to_vec(),
+            stdin: io::stdin(),
+        }
+    }
 
+    pub fn choose() -> C::Item {
+        Self::new().choose_raw()
+    }
+
+    pub fn choose_complex(choices: &[C::Item]) -> C::Item {
+        Self::new_raw(choices).choose_raw()
+    }
+
+    fn choose_raw(&self) -> C::Item {
         let mut buffer = String::new();
 
         loop {
-            chooser.print_choices();
-            chooser
-                .stdin
+            self.print_choices();
+            self.stdin
                 .read_line(&mut buffer)
                 .expect("failed to read line!");
 
-            if let Some(choice) = chooser.parse_choice(&buffer) {
+            if let Some(choice) = self.parse_choice(&buffer) {
                 println!("You chose: {}", choice.describe());
                 break choice;
             }
@@ -43,18 +58,38 @@ impl<C: Choosable> Chooser<C> {
         }
     }
 
-    pub fn print_choices(&self) {
+    fn print_choices(&self) {
         for (i, choice) in self.choices.iter().map(Describable::describe).enumerate() {
             println!("{i}: {choice}")
         }
     }
 
-    pub fn parse_choice(&self, input: &str) -> Option<C> {
+    fn parse_choice(&self, input: &str) -> Option<C::Item> {
         let number: usize = input.trim().parse().ok()?;
-        self.choices.get(number).copied()
+        self.choices.get(number).cloned()
     }
 }
 
-pub fn choose<C: Choosable>() -> C {
+pub fn choose<C: Choosable>(message: &str) -> C::Item {
+    println!("{message}");
     Chooser::<C>::choose()
+}
+
+pub fn choose_complex<C: Choosable>(message: &str, choices: &[C::Item]) -> C::Item {
+    println!("{message}");
+    Chooser::<C>::choose_complex(choices)
+}
+
+impl Choosable for bool {
+    type Item = Self;
+
+    fn choices() -> Vec<Self::Item> {
+        vec![false, true]
+    }
+}
+
+impl Describable for bool {
+    fn describe(&self) -> String {
+        if *self { "Yes" } else { "No" }.to_string()
+    }
 }

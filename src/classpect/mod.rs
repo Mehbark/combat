@@ -1,8 +1,14 @@
+use std::fmt;
+use std::rc::Rc;
+
 use crate::ui::{Choosable, Describable};
 
 use crate::creature::Ability;
+mod abilities;
 mod stats;
-use stats::abilities_from_classpect;
+use abilities::abilities_from_classpect;
+
+use stats::{defense_from_classpect, health_from_classpect, speed_from_classpect};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Classpect {
@@ -15,20 +21,26 @@ impl Classpect {
         Self { class, aspect }
     }
 
-    pub fn abilities(self) -> Vec<Box<dyn Ability>> {
+    pub fn abilities(self) -> Vec<Rc<dyn Ability>> {
         abilities_from_classpect(self)
     }
 
     pub fn health(self) -> f64 {
-        todo!()
+        health_from_classpect(self)
     }
 
     pub fn defense(self) -> f64 {
-        todo!()
+        defense_from_classpect(self)
     }
 
     pub fn speed(self) -> f64 {
-        todo!()
+        speed_from_classpect(self)
+    }
+}
+
+impl fmt::Display for Classpect {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:#?} of {:#?}", self.class, self.aspect)
     }
 }
 
@@ -65,7 +77,9 @@ pub enum Aspect {
 }
 
 impl Choosable for Class {
-    fn choices() -> Vec<Self> {
+    type Item = Self;
+
+    fn choices() -> Vec<Self::Item> {
         vec![
             Self::Thief,
             Self::Rogue,
@@ -90,7 +104,9 @@ impl Describable for Class {
 }
 
 impl Choosable for Aspect {
-    fn choices() -> Vec<Self> {
+    type Item = Self;
+
+    fn choices() -> Vec<Self::Item> {
         vec![
             Self::Space,
             Self::Time,
