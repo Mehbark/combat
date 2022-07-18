@@ -1,5 +1,37 @@
 use crate::ui::{Choosable, Describable};
 
+use crate::creature::Ability;
+mod stats;
+use stats::abilities_from_classpect;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Classpect {
+    class: Class,
+    aspect: Aspect,
+}
+
+impl Classpect {
+    pub fn new(class: Class, aspect: Aspect) -> Self {
+        Self { class, aspect }
+    }
+
+    pub fn abilities(self) -> Vec<Box<dyn Ability>> {
+        abilities_from_classpect(self)
+    }
+
+    pub fn health(self) -> f64 {
+        todo!()
+    }
+
+    pub fn defense(self) -> f64 {
+        todo!()
+    }
+
+    pub fn speed(self) -> f64 {
+        todo!()
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Class {
     Thief,

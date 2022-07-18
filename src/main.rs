@@ -1,3 +1,4 @@
+mod classpect;
 mod creature;
 mod ui;
 

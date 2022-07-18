@@ -39,6 +39,7 @@ impl<C: Choosable> Chooser<C> {
             }
 
             println!("Sorry, try again.");
+            buffer.clear();
         }
     }
 
